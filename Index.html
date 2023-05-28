@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+
+let x = 200;
+let y = window.innerHeight/2;
+let pipeX = 0;
+let pipeHeight = 0;
+let counter = 0;
+let cameraX = 0;
+let camerax = 0;
+
+
+window.onload = function SetupCanvas()
+{
+
+let request;
+const performAnimation = () => {
+
+ setTimeout(() => {
+     request = requestAnimationFrame(performAnimation)
+  }, 1000/10);
+
+   var canvas = document.getElementById("canvas");
+   var layout = canvas.getContext("2d");
+
+  layout.canvas.width  = window.innerWidth;
+  layout.canvas.height = window.innerHeight;
+  layout.clearRect(0,0,canvas.width,canvas.height);
+
+  var FlappyArr = new Array("Flappy1.png","Flappy2.png");
+  var BarArr = new Array("PipeTop.png","PipeDown.png");
+
+  y += 5;
+  pipeX += 5;
+
+  counter++;
+
+  if(counter % 2 === 0)
+  {
+  var img = new Image();
+  img.src = FlappyArr[0];
+  img.onload = function()
+  {
+	layout.drawImage(img,x,y,50,50);
+  }
+  layout.drawImage(img,x,y,50,50);
+  }
+  else
+  {
+  var img = new Image();
+  img.src = FlappyArr[1];
+  img.onload = function()
+  {
+	layout.drawImage(img,x,y,50,50);
+  }
+  layout.drawImage(img,x,y,50,50);
+  }
+
+  var pipetop = new Image();
+  pipetop.src = BarArr[0];
+  cameraX = canvas.width/2 - pipeX;
+  camerax = canvas.width - pipeX;
+
+  pipetop.onload = function()
+  {
+	layout.drawImage(pipetop,cameraX,canvas.height,150,-300);
+  layout.drawImage(pipetop,camerax,canvas.height,150,-300);
+  }
+  layout.drawImage(pipetop,cameraX,canvas.height,150,-300);
+  layout.drawImage(pipetop,camerax,canvas.height,150,-300);
+
+  if(x >= cameraX && x <= cameraX + 150 && y >= canvas.height - 300)
+  {
+	alert("Gameover!");
+	y = window.innerHeight/2;
+	cameraX = canvas.width/2 - pipeX;
+	camerax = canvas.width - pipeX;
+  }
+
+  if(x >= camerax && x <= camerax + 150 && y >= canvas.height - 300)
+  {
+	alert("Gameover!");
+	y = window.innerHeight/2;
+	cameraX = canvas.width/2 - pipeX;
+	camerax = canvas.width - pipeX;
+  }
+
+  var pipeBottom = new Image();
+  pipeBottom.src = BarArr[1];
+  cameraX = canvas.width/2 - pipeX;
+  camerax = canvas.width - pipeX;
+
+  pipeBottom.onload = function()
+  {
+	layout.drawImage(pipeBottom,cameraX,0,150,pipeHeight);
+  layout.drawImage(pipeBottom,camerax,0,150,pipeHeight);
+  }
+  layout.drawImage(pipeBottom,cameraX,0,150,pipeHeight);
+  layout.drawImage(pipeBottom,camerax,0,150,pipeHeight);
+
+  if(x >= cameraX && x <= cameraX + 125 && y >= pipeHeight && y <= pipeHeight)
+  {
+	alert("Gameover!");
+	y = window.innerHeight/2;
+	cameraX = canvas.width/2 - pipeX;
+	camerax = canvas.width - pipeX;
+  }
+
+  if(x >= camerax && x <= camerax + 125 && y >= pipeHeight && y <= pipeHeight)
+  {
+	alert("Gameover!");
+	y = window.innerHeight/2;
+	cameraX = canvas.width/2 - pipeX;
+	camerax = canvas.width - pipeX;
+  }
+
+  document.addEventListener('keyup', event => {
+  if (event.code === 'Space') {
+      y -= 0.5;
+  }
+})
+
+if(camerax <= 0)
+{
+	pipeX = 0;
+	camerax = canvas.width - pipeX;
+	pipeHeight = Math.floor(Math.random() * 200) + 50;
+}
+
+if(cameraX <= -canvas.width/2 + 125)
+{
+	pipeX = 0;
+	cameraX = canvas.width/2 - pipeX;
+	pipeHeight = Math.floor(Math.random() * 200) + 50;
+
+}
+
+if( y >= window.innerHeight)
+{
+	alert("Gameover!");
+	y = window.innerHeight/2;
+	cameraX = canvas.width/2 - pipeX;
+	camerax = canvas.width - pipeX;
+}
+
+if(y <= 0)
+{
+	y = 0;
+}
+}
+
+requestAnimationFrame(performAnimation)
+
+}
+
+</script>
+<style>
+html, body {
+  overflow: hidden;
+}
+
+#canvas
+{
+ width:500px;
+ height:500px;
+ margin:0px auto;
+ border:2px solid black;
+ position:absolute;
+ left:400px;
+ top:50px;
+ background-color:lightblue;
+ background-image: url("background.png");
+}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="500px" height="500px"></canvas>
+</body>
+</html>
