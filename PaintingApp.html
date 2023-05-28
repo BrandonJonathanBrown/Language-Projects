@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript">
+    var canvas, ctx, flag = false,
+        pX = 0,
+        cX = 0,
+        pY = 0,
+        cY = 0;
+
+    var color = "black",
+        thickness = 2;
+
+    function init() {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext("2d");
+        width = canvas.width;
+        height = canvas.height;
+
+        canvas.addEventListener("mousemove", function (e) {
+          if(flag != false)
+            Drawing('move', e)
+        }, false);
+        canvas.addEventListener("mousedown", function (e) {
+            flag = true;
+            Drawing('down', e)
+        }, false);
+        canvas.addEventListener("mouseup", function (e) {
+            flag = false;
+            Drawing('up', e)
+        }, false);
+        canvas.addEventListener("mouseout", function (e) {
+            flag = false;
+            Drawing('out', e)
+        }, false);
+    }
+
+    function draw() {
+        ctx.beginPath();
+        ctx.moveTo(pX, pY);
+        ctx.lineTo(cX, cY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    function erase() {
+        ctx.clearRect(0, 0, width, height);
+        document.getElementById("canvasimg").style.display = "none";
+    }
+
+    function save() {
+        var canvas = document.getElementById("canvas");
+        var dataURL = canvas.toDataURL("image/png");
+        var newTab = window.open('about:blank','image from canvas');
+        newTab.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+    }
+
+    function Drawing(res, e) {
+        if (res == 'down') {
+            pX = cX;
+            pY = cY;
+            cX = e.clientX - canvas.offsetLeft;
+            cY = e.clientY - canvas.offsetTop;
+        }
+        if (res == 'move') {
+                pX = cX;
+                pY = cY;
+                cX = e.clientX - canvas.offsetLeft;
+                cY = e.clientY - canvas.offsetTop;
+                draw();
+        }
+    }
+
+    </script>
+  </head>
+    <body onload="init()">
+        <canvas id="canvas" width="1000" height="800" style="position:absolute;top:10%;left:20%;border:3px solid;"></canvas>
+        <img id="canvasimg" style="position:absolute;top:10%;left:40%;" style="display:none;">
+        <input type="button" value="save" id="btn"  onclick="save()" style="position:absolute;top:5%;left:50%;width:200px;height:200px;">
+        <input type="button" value="clear" id="clr" onclick="erase()" style="position:absolute;top:5%;left:30%;width:200px;height:200px;">
+    </body>
+</html>
