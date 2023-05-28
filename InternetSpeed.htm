@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+          Network Speed Tester
+        </title>
+        <style>
+        body{font-size:20px;font-family:Latin Modern;}
+        </style>
+        <script>
+
+        window.addEventListener('DOMContentLoaded', function () {
+        function DisplaySpeed (event)
+        {
+            let Network = document.querySelector('output');
+            if (!navigator.connection)
+            {
+              Network.innerHTML = 'API NOT SUPPORTED BY BROWSER';
+            }
+          else
+          {
+              Network.innerHTML = `
+              Internet Connection Type: ${navigator.connection.effectiveType}<br>
+              Download Speed: ${navigator.connection.downlink}mbs<br>
+              Time Duration: ${navigator.connection.rtt}ms<br>
+              `;
+          }
+        }
+            DisplaySpeed();
+            navigator.connection.onchange = DisplaySpeed;
+        })
+
+        function UploadSpeed(iterate, update) {
+            var average = 0,index = 0,timer = window.setInterval(Status, 1000 );
+            Status();
+
+            function Status() {
+                var request = new XMLHttpRequest(),
+                    url = '?cache=' + Math.floor( Math.random() * 10000 ),
+                    data = GenerateString(6),
+                    start,
+                    speed = 0;
+                request.onreadystatechange = function ( event ) {
+                    if( request.readyState == 4 ) {
+                        speed = Math.round( 1024 / ( ( new Date() - start) / 1000 ) );
+                        average == 0
+                            ? average = speed
+                            : average = Math.round( ( average + speed ) / 2 );
+                        update( speed, average );
+                        index++;
+                        if( index == iterate ) {
+                            window.clearInterval( timer );
+                        };
+                    };
+                };
+                request.open( 'POST', url, true );
+                start = new Date();
+                request.send( data );
+            };
+
+            function GenerateString( size ) {
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@#$%^&*()_+`-=[]\{}|;':,./<>?", //random data prevents gzip effect
+                    iterate = size * 1024 * 1024, //get byte count
+                    result = '';
+                for( var index = 0; index < iterate; index++ ) {
+                    result += chars.charAt( Math.floor( Math.random() * chars.length ) );
+                };
+                return result;
+            };
+        };
+
+        UploadSpeed( 30, function ( speed, average ) {
+            document.getElementById( 'speed' ).textContent = 'Upload Speed: ' + Math.round(speed/1024 * 10) /10 + 'mbs';
+            document.getElementById( 'average' ).textContent = 'Average Upload Speed: ' + Math.round(average/1024 * 10) / 10 + 'mbs';
+        } );
+    </script>
+    </head>
+    <body>
+      <output></output>
+      Updated every 1000 ms (1 second)
+      <div id="speed">Upload Speed: 0mbs</div>
+      <div id="average">Average Upload Speed: 0mbs</div>
+    </body>
+</html>
