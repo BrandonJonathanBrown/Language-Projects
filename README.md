@@ -1,5 +1,5 @@
-@Author Brandon Jonathan Brown
+@Author - Brandon Jonathan Brown
 
-@Author Please check out the branches for code projects!
+@Author - Please check out the branches for code projects!
 
-@Author Email is BrandonJBrown21@gmail.com for chats on collaborations 
+@Author - Email is BrandonJBrown21@gmail.com for chats on collaborations 
