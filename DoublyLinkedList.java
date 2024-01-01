@@ -2,8 +2,7 @@
 public class DoublyLinkedList<T> {
 	
 	/**
-	 * 
-	 * @author brandonjonathanbrown
+	 * @Author Brandon Jonathan Brown
 	 */
 	
 	public Node<T> tail;
