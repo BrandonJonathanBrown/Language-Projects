@@ -1,5 +1,5 @@
 /**
-@Author brandon jonathan brown
+@Author Brandon Jonathan Brown
 @About Simple Singly linked list data structure c++
 */
 #include <iostream>  
@@ -102,5 +102,5 @@ int main(int argc, char** argv)
 
     list.ListTraversal();
 
-    return 0;
+    return -1;
 };
