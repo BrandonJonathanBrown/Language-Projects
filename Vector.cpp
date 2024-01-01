@@ -97,7 +97,6 @@ int main(int argc, char* argv[])
     printf("%s\n","Smallest To Largest...");
     obj.lowestValues();
     obj.printArr();
-
     printf("\n");
     printf("%s\n","Largest To Smallest...");
     obj.hightestValues();
