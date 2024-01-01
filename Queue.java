@@ -1,8 +1,7 @@
 /**
  *
  * @Author Brandon Jonathan Brown
- * @Note This is a simple generic class
- * queue
+ * @Note Simple generic Queue class 
  */
 
 public class Queue<T> {
