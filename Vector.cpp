@@ -92,7 +92,6 @@ int main(int argc, char* argv[])
 {
     Vector<int> obj;
     int _size = std::stoi(argv[1]);
-    // Taking in the numbers of integers from the command line arguments...
     obj.populate(_size);
     printf("%s\n","Smallest To Largest...");
     obj.lowestValues();
