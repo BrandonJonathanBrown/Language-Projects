@@ -2,7 +2,6 @@ from pytube import YouTube
 from tqdm import tqdm
 import requests
 
-#Author Brandon Jonathan Brown
 class YouTubeDownloader:
 
     def __init__(self, url):
