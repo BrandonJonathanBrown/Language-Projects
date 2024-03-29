@@ -6,6 +6,8 @@ from appscript import app, mactypes
 import datetime
 import re
 
+#Author Brandon Jonathan Brown
+
 def find_image_urls(html_content):
     """
     Finds image URLs in the given HTML content using regular expressions.
