@@ -1,57 +1,59 @@
-org 0
-bits 16
+org 0x100            ; Origin, specifying where the program will be loaded in memory
+bits 16              ; We're working in 16-bit real mode
 
-_.start:
-push cs
-pop  ds
-mov  si, msg
-jmp Print
-
+start:
+    mov ax, 0x3       ; Set video mode function
+    int 0x10          ; Call BIOS video interrupt
+    call PrintMsg     ; Print welcome message
+    
 GameLoop:
-mov ah, 00h
-int 1ah
-mov  ax, dx
-xor  dx, dx
-mov  cx, 10
-div  cx
-add  dl, '0'
-mov  ah, 0x00
-int  16h
-mov  ah, 0x0E
-int  0x10
-
-GameCondition:
-mov  si, won
-cmp  al, dl
-je   GameWon
-jmp  GameLost
+    call PrintMsg     ; Prompt for guess
+    mov ah, 0x00      ; BIOS keyboard service - wait for keypress
+    int 0x16          ; Call BIOS interrupt to read character
+    
+    ; Convert ASCII to integer by subtracting '0'
+    sub al, '0'
+    
+    ; For simplicity, we simulate a random number generation
+    ; by getting the low byte of the timer, which changes rapidly
+    mov ah, 0x00
+    int 0x1A          ; Call BIOS time service
+    and dl, 0x0F      ; Ensure the "random number" is between 0 and 9
+    
+    ; Compare input with "random" number
+    cmp al, dl
+    je GameWon
+    jmp GameLost
+    
+GameWon:
+    mov si, won
+    call PrintMsg
+    jmp Exit
 
 GameLost:
-mov  si, loss
-jmp Print
+    mov si, loss
+    call PrintMsg
+    jmp Exit
 
-GameWon:
-jmp Print
-
-Print:
-jmp  BeginLoop
-
+PrintMsg:
+    mov ah, 0x0E      ; BIOS teletype service
+    
 PrintLoop:
-mov  ah, 0x0E
-int  0x10
+    lodsb             ; Load string byte at DS:SI into AL, increment SI
+    test al, al       ; Test if AL is 0 (end of string)
+    jz  Return        ; If it's the end of the string, return
+    int 0x10          ; Otherwise, print character in AL
+    jmp PrintLoop     ; Loop to print next character
 
-BeginLoop:
-mov  al, [si]
-inc  si
-or al, al
-jz GameLoop
-test al, al
-jnz  PrintLoop
-ret
+Return:
+    ret
+    
+Exit:
+    mov ax, 0x4C00    ; Terminate program
+    int 0x21
+    
+msg   db 'Welcome To My Guessing Game', 13, 10
+      db 'Pick A Number Between 0 - 9: ', 0
+won   db 'You Guessed The Correct Number!', 13, 10, 0
+loss  db 'You Guessed The Incorrect Number!', 13, 10, 0
 
-; -------------------
-msg db   'Welcome To My Guessing Game: ', 10, 13, 'Pick A Number Between 0 - 9 ', 10, 13, 0
-won db   'You Guessed The Correct Number!', 10, 13, 0
-loss db  'You Guessed The Incorrect Number!', 10, 13,  0
-
-times 512 - ($-$$) db 0
