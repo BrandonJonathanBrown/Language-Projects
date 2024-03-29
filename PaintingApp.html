@@ -1,84 +1,69 @@
 <!DOCTYPE html>
 <html>
+<!-- Author Brandon Jonathan Brown -->
 <head>
     <script type="text/javascript">
-    var canvas, ctx, flag = false,
-        pX = 0,
-        cX = 0,
-        pY = 0,
-        cY = 0;
+    let canvas, ctx;
+    let isDrawing = false;
+    let startX = 0;
+    let startY = 0;
 
-    var color = "black",
-        thickness = 2;
+    const color = "black";
+    const thickness = 2;
 
     function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext("2d");
-        width = canvas.width;
-        height = canvas.height;
 
+        // Event listeners for drawing
         canvas.addEventListener("mousemove", function (e) {
-          if(flag != false)
-            Drawing('move', e)
+            if (isDrawing) {
+                Drawing(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            }
         }, false);
         canvas.addEventListener("mousedown", function (e) {
-            flag = true;
-            Drawing('down', e)
+            isDrawing = true;
+            startX = e.clientX - canvas.offsetLeft;
+            startY = e.clientY - canvas.offsetTop;
         }, false);
-        canvas.addEventListener("mouseup", function (e) {
-            flag = false;
-            Drawing('up', e)
+        canvas.addEventListener("mouseup", function () {
+            isDrawing = false;
         }, false);
-        canvas.addEventListener("mouseout", function (e) {
-            flag = false;
-            Drawing('out', e)
+        canvas.addEventListener("mouseout", function () {
+            isDrawing = false;
         }, false);
     }
 
-    function draw() {
+    // Draws a line to the current x, y coordinates
+    function Drawing(currentX, currentY) {
+        if (!isDrawing) return;
         ctx.beginPath();
-        ctx.moveTo(pX, pY);
-        ctx.lineTo(cX, cY);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(currentX, currentY);
         ctx.strokeStyle = color;
         ctx.lineWidth = thickness;
         ctx.stroke();
         ctx.closePath();
+        startX = currentX;
+        startY = currentY;
     }
 
+    // Clears the canvas
     function erase() {
-        ctx.clearRect(0, 0, width, height);
-        document.getElementById("canvasimg").style.display = "none";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    // Saves the canvas as an image
     function save() {
-        var canvas = document.getElementById("canvas");
-        var dataURL = canvas.toDataURL("image/png");
-        var newTab = window.open('about:blank','image from canvas');
+        const dataURL = canvas.toDataURL("image/png");
+        const newTab = window.open('about:blank','image from canvas');
         newTab.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
     }
-
-    function Drawing(res, e) {
-        if (res == 'down') {
-            pX = cX;
-            pY = cY;
-            cX = e.clientX - canvas.offsetLeft;
-            cY = e.clientY - canvas.offsetTop;
-        }
-        if (res == 'move') {
-                pX = cX;
-                pY = cY;
-                cX = e.clientX - canvas.offsetLeft;
-                cY = e.clientY - canvas.offsetTop;
-                draw();
-        }
-    }
-
     </script>
-  </head>
-    <body onload="init()">
-        <canvas id="canvas" width="1000" height="800" style="position:absolute;top:10%;left:20%;border:3px solid;"></canvas>
-        <img id="canvasimg" style="position:absolute;top:10%;left:40%;" style="display:none;">
-        <input type="button" value="save" id="btn"  onclick="save()" style="position:absolute;top:5%;left:50%;width:200px;height:200px;">
-        <input type="button" value="clear" id="clr" onclick="erase()" style="position:absolute;top:5%;left:30%;width:200px;height:200px;">
-    </body>
+</head>
+<body onload="init()">
+    <canvas id="canvas" width="800" height="600" style="position: absolute; top: 10%; left: 10%; border: 2px solid #000;"></canvas>
+    <button onclick="save()" style="position: absolute; top: 5%; left: 20%;">Save</button>
+    <button onclick="erase()" style="position: absolute; top: 5%; left: 25%;">Clear</button>
+</body>
 </html>
