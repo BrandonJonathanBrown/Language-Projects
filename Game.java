@@ -2,285 +2,153 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-public class Game extends JPanel implements Adapter{
-	
-	/**
-	 * @author brandonjonathanbrown
-	 */
-	
-	private static final long serialVersionUID = 1L;
-	private JTextField [][] board = new JTextField[9][9];
-	private int[][] mirror = new int[9][9];
-	
-	public Game()
-	{
-		init();
+public class Game extends JPanel {
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-            	 
-                while(true) {
-                  
-                    try {
-                        Thread.sleep(1000/60);
-                        Placement();
-                		boundaries();
-                    }
-                    catch(Exception ex)
-                    {
-                    	System.err.println(ex.getMessage());
-                    }
+	/**
+ 		Author Brandon Jonathan Brown
+	*/
+
+    private JTextField[][] board = new JTextField[9][9];
+    // Sample predefined puzzle (0s are empty cells to be filled by the user)
+    private int[][] puzzle = {
+        {5, 3, 0, 0, 7, 0, 0, 0, 0},
+        {6, 0, 0, 1, 9, 5, 0, 0, 0},
+        {0, 9, 8, 0, 0, 0, 0, 6, 0},
+        {8, 0, 0, 0, 6, 0, 0, 0, 3},
+        {4, 0, 0, 8, 0, 3, 0, 0, 1},
+        {7, 0, 0, 0, 2, 0, 0, 0, 6},
+        {0, 6, 0, 0, 0, 0, 2, 8, 0},
+        {0, 0, 0, 4, 1, 9, 0, 0, 5},
+        {0, 0, 0, 0, 8, 0, 0, 7, 9}
+    };
+
+    public Game() {
+        setLayout(new GridLayout(9, 9));
+        initBoard();
+    }
+
+    private void initBoard() {
+        Font font = new Font("Arial", Font.BOLD, 24);
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                JTextField field = new JTextField();
+                field.setHorizontalAlignment(SwingConstants.CENTER);
+                field.setFont(font);
+
+                if (puzzle[i][j] != 0) {
+                    field.setText(String.valueOf(puzzle[i][j]));
+                    field.setEditable(false);
+                } else {
+                    field.addKeyListener(new SudokuKeyAdapter());
+                }
+
+                board[i][j] = field;
+                add(field);
+            }
+        }
+    }
+
+    private class SudokuKeyAdapter extends KeyAdapter {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            char c = e.getKeyChar();
+            if (!Character.isDigit(c) || c == '0') {
+                e.consume();
+            }
+        }
+    }
+
+    public boolean checkBoard() {
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                String text = board[row][col].getText();
+                int num = text.isEmpty() ? 0 : Integer.parseInt(text);
+                if (num == 0 || !isValid(row, col, num)) {
+                    return false;
                 }
             }
-           
-        }); thread.start();
-	
-            
-     }
-	
-	
-	@Override
-	public void init() {
-	
-		 
-	 	for(int i = 0; i < 9; i++)
-		{
-			for(int j = 0; j < 9; j++)
-			{
-				JTextField textField = new JTextField();
-				    textField.addKeyListener(new KeyAdapter() {
-				        @Override
-				        public void keyTyped(KeyEvent e) {
-				            if (textField.getText().length() >= 1 ) 
-				                e.consume();
-				        }
-				    });
-				    
-				    textField.addKeyListener(new KeyAdapter() {
-				    	  public void keyTyped(KeyEvent e) {
-				    	    char c = e.getKeyChar();
-				    	       if((Character.isAlphabetic(c) || (c==KeyEvent.VK_BACK_SPACE) || c==KeyEvent.VK_DELETE )) {
-				    	        e.consume();  
-				    	    }
-				    	   }
-				    	});
+        }
+        return true;
+    }
 
-				  textField.setHorizontalAlignment(SwingConstants.CENTER);
-				  textField.setFont(new Font("Arial", Font.PLAIN, 50));
-				  board[i][j] = textField;
-				  mirror[i][j] = 0; 
-			}
-			
-		}	
-	 
-        this.setLayout(new GridLayout(9,9));
+    private boolean isValid(int row, int col, int num) {
+        // Check row and column
+        for (int i = 0; i < 9; i++) {
+            if (num == getIntFromField(row, i) || num == getIntFromField(i, col)) {
+                return false;
+            }
+        }
+        // Check 3x3 grid
+        int startRow = row - row % 3, startCol = col - col % 3;
+        for (int r = startRow; r < startRow + 3; r++) {
+            for (int c = startCol; c < startCol + 3; c++) {
+                if (num == getIntFromField(r, c)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private int getIntFromField(int row, int col) {
+        String text = board[row][col].getText();
+        return text.isEmpty() ? 0 : Integer.parseInt(text);
+    }
+
+public void resetBoard() {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (puzzle[i][j] == 0) { 
+                board[i][j].setText("");
+                board[i][j].setEditable(true);
+            }
+        }
+    }
+}
+
+public static void main(String[] args) {
         
-        for(int i = 0; i < 9; i++)
-        {
-        	for(int j = 0; j < 9; j++)
-        	{
-        		this.add(board[i][j]);
-        	}
-        }	
-		
-	}
+	SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Sudoku");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(600, 600);
 
-	@Override
-	public void boundaries() {
-		
+            Game gamePanel = new Game();
+            frame.add(gamePanel, BorderLayout.CENTER);
 
-			duplicate(mirror);
-			
-		}
-	
-	@Override
-	public int duplicateRow(int[][] arr)
-	{
-		  int index = 0;
-		
-		  for (int row = 0; row < arr.length; row++)
-		    {
-		        for (int col = 0; col < arr[row].length; col++)
-		        {
-		            int num = arr[row][col];
-		            for (int otherCol = col + 1; otherCol < arr.length; otherCol++)
-		            {
-		                if (num == arr[row][otherCol])
-		                {
-		                    System.out.println("Duplicate Found In Array!");
-		                }
-		                else
-		                {
-		                	index++;
-		                }
-		            }
-		        }
-		    }
-		  
-		  return index;
-	}
-	
-	@Override
-	public void duplicate(int[][] arr) {
-		
-		
-		
-		    if(duplicateRow(arr) == 81 && duplicateCol(arr) == 81 && duplicateblock(arr) == 81)
-		    {
-		    	JOptionPane.showMessageDialog(null, "You Won The Game!", "MessageBox:" + "Sudoku", JOptionPane.INFORMATION_MESSAGE);
-		    }
-		 
-		
-	}
-	
-	@Override
-	public void Placement() {
-		 
-		for(int i = 0; i < board.length; i++)
-		 {
-			 for(int j = 0; j < board.length; j++)
-			 {
-				 mirror[i][j] = 0;
-			 }
-		 }
-		
-		for(int i = 0; i < board.length; i++)
-		 {
-			 for(int j = 0; j < board.length; j++)
-			 {
-				 switch(Integer.parseInt(board[i][j].getText().toString()))
-				 {
-				 case 1:
-					 mirror[i][j] = 1;
-					 break;
-				 case 2:
-					 mirror[i][j] = 2;
-					 break;
-				 case 3: 
-					 mirror[i][j] = 3;
-					 break;
-				 case 4:
-					 mirror[i][j] = 4;
-					 break;
-				 case 5:
-					 mirror[i][j] = 5;
-					 break;
-				 case 6:
-					 mirror[i][j] = 6;
-					 break;
-				 case 7:
-					 mirror[i][j] = 7;
-					 break;
-				 case 8:
-					 mirror[i][j] = 8;
-					 break;
-				 case 9:
-					 mirror[i][j] = 9;
-					 break;
-				default:
-					System.err.println("ERROR");
-					break;
-				 }
-			 }
-		 }
-		
-	}
+            JPanel controlPanel = new JPanel();
+            JButton checkButton = new JButton("Check Solution");
+            checkButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (gamePanel.checkBoard()) {
+                        JOptionPane.showMessageDialog(frame, "Congratulations, You've solved the puzzle!", "Sudoku", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Incorrect solution, try again.", "Sudoku", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    gamePanel.resetBoard();  // Implement this method to reset the game
+                }
+            });
 
+            controlPanel.add(checkButton);
+            controlPanel.add(resetButton);
+            frame.add(controlPanel, BorderLayout.SOUTH);
 
-
-	@Override
-	public int duplicateCol(int[][] arr) {
-		
-		int index = 0;
-		
-		   for (int col = 0; col < arr.length; col++)
-		    {
-		        for (int row = 0; row < arr[col].length; row++)
-		        {
-		            int num = arr[row][col];
-		            for (int otherrow = row + 1; otherrow < arr.length; otherrow++)
-		            {
-		                if (num == arr[otherrow][col])
-		                {
-		                    System.out.println("Duplicate Found In Array!");
-		                }
-		                else
-		                {
-		                	index++;
-		                }
-		            }
-		        }
-		    }
-		   
-		   return index;
-	}
-
-
-	@Override
-	public int duplicateblock(int[][] arr) {
-	
-		ArrayList<String> list = new ArrayList<String>();
-		int index = 0;
-		
-		for (int i = 0; i < 9; i += 3) {   
-			
-		  for (int j = 0; j < 9; j += 3) {
-			  
-		    String curr = "";
-		    
-		    for (int k = 0; k < 3; k++) {
-		    	
-		      for (int l = 0; l < 3; l++) {
-		    	  
-		        curr += arr[i + k][j + l];
-		      }
-		    }
-		    list.add(curr);
-		  }
-		}
-		
-		int k = 0;
-		int[][] block = new int[list.size()][list.size()]; 
-		
-		for(String p: list)
-		{
-			
-			for(int j = 0; j < list.size(); j++)
-			{
-				block[k][j] = Integer.parseInt(String.valueOf(p.charAt(j)));
-			}
-			
-			k++;
-		}
-		
-		 for (int row = 0; row < block.length; row++)
-		    {
-		        for (int col = 0; col < block[row].length; col++)
-		        {
-		            int num = block[row][col];
-		            for (int otherCol = col + 1; otherCol < block.length; otherCol++)
-		            {
-		                if (num == block[row][otherCol])
-		                {
-		                    System.out.println("Duplicate Found In Array!");
-		                }
-		                else
-		                {
-		                	index++;
-		                }
-		            }
-		        }
-		    }
-		 return index;
-	}
-	    
-	
-	
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
+    }
+    
 }
