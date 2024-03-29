@@ -17,7 +17,7 @@ public class BinarySearchExample implements Runnable {
         int high = arr.length - 1;
 
         while (low <= high) {
-            int middlePosition = low + (high - low) / 2; // To prevent potential overflow
+            int middlePosition = low + (high - low) / 2; 
             int middleValue = arr[middlePosition];
 
             if (target == middleValue) {
