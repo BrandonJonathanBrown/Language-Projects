@@ -3,65 +3,61 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import javax.sound.sampled.*;
 
+// Author Brandon Jonathan Brown
+
 public class Server {
 
-    private boolean running = true;
+    private static final int PORT = 5000;
+    private static final int BUFFER_SIZE = 1024;
+    private static final AudioFormat FORMAT = new AudioFormat(44100, 16, 2, true, true);
+
+    private volatile boolean running = true;
     private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private AudioFormat format;
-    private SourceDataLine speaker;
-    private TargetDataLine microphone;
 
     public Server(int port) {
-        try {
-            serverSocket = new ServerSocket(port);
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            this.serverSocket = serverSocket;
             System.out.println("Server started. Waiting for connection...");
-            clientSocket = serverSocket.accept();
-            System.out.println("Client connected.");
 
-            setupAudio();
-            startCommunication();
+            try (Socket clientSocket = serverSocket.accept()) {
+                System.out.println("Client connected.");
+                startCommunication(clientSocket);
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Server exception: " + e.getMessage());
         }
     }
 
-    private void setupAudio() {
-        format = new AudioFormat(44100, 16, 2, true, true);
+    private void startCommunication(Socket clientSocket) {
+        new Thread(() -> handleAudioOutput(clientSocket)).start();
+        new Thread(() -> handleAudioInput(clientSocket)).start();
     }
 
-    private void startCommunication() {
-        new Thread(this::handleAudioOutput).start();
-        new Thread(this::handleAudioInput).start();
-    }
-
-    private void handleAudioOutput() {
+    private void handleAudioOutput(Socket clientSocket) {
         try (InputStream inputStream = clientSocket.getInputStream()) {
-            DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format);
-            speaker = (SourceDataLine) AudioSystem.getLine(speakerInfo);
-            speaker.open(format);
+            DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, FORMAT);
+            SourceDataLine speaker = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+            speaker.open(FORMAT);
             speaker.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while (running && (bytesRead = inputStream.read(buffer)) != -1) {
                 speaker.write(buffer, 0, bytesRead);
             }
         } catch (IOException | LineUnavailableException e) {
-            e.printStackTrace();
-        } finally {
-            cleanup();
+            System.err.println("Audio output error: " + e.getMessage());
         }
     }
 
-    private void handleAudioInput() {
+    private void handleAudioInput(Socket clientSocket) {
         try (OutputStream outputStream = clientSocket.getOutputStream()) {
-            DataLine.Info microphoneInfo = new DataLine.Info(TargetDataLine.class, format);
-            microphone = (TargetDataLine) AudioSystem.getLine(microphoneInfo);
-            microphone.open(format);
+            DataLine.Info microphoneInfo = new DataLine.Info(TargetDataLine.class, FORMAT);
+            TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(microphoneInfo);
+            microphone.open(FORMAT);
             microphone.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             while (running) {
                 int count = microphone.read(buffer, 0, buffer.length);
                 if (count > 0) {
@@ -69,24 +65,11 @@ public class Server {
                 }
             }
         } catch (IOException | LineUnavailableException e) {
-            e.printStackTrace();
-        } finally {
-            cleanup();
-        }
-    }
-
-    private void cleanup() {
-        if (microphone != null) microphone.close();
-        if (speaker != null) speaker.close();
-        try {
-            if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
-            if (serverSocket != null && !serverSocket.isClosed()) serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Audio input error: " + e.getMessage());
         }
     }
 
     public static void main(String[] args) {
-        new Server(5000);
+        new Server(PORT);
     }
 }
