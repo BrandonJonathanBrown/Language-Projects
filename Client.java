@@ -9,7 +9,7 @@ public class Client {
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 5000;
     private static final int SAMPLE_RATE = 44100;
-    private static final int BUFFER_SIZE = 1024; // bytes
+    private static final int BUFFER_SIZE = 1024; 
 
     private Socket socket;
     private AudioFormat format;
