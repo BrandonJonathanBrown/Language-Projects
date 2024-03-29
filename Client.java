@@ -2,27 +2,35 @@ import java.io.*;
 import java.net.Socket;
 import javax.sound.sampled.*;
 
+//Author Brandon Jonathan Brown 
+
 public class Client {
+
+    private static final String HOST = "127.0.0.1";
+    private static final int PORT = 5000;
+    private static final int SAMPLE_RATE = 44100;
+    private static final int BUFFER_SIZE = 1024; // bytes
 
     private Socket socket;
     private AudioFormat format;
     private SourceDataLine speaker;
     private TargetDataLine microphone;
-    private boolean running = true;
+    private volatile boolean running = true;
 
-    public Client(String host, int port) {
+    public Client() {
         try {
-            socket = new Socket(host, port);
+            socket = new Socket(HOST, PORT);
             System.out.println("Connected to server.");
             setupAudio();
             startCommunication();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error connecting to server: " + e.getMessage());
+            return;
         }
     }
 
     private void setupAudio() {
-        format = new AudioFormat(44100, 16, 2, true, true);
+        format = new AudioFormat(SAMPLE_RATE, 16, 2, true, true);
     }
 
     private void startCommunication() {
@@ -37,13 +45,13 @@ public class Client {
             speaker.open(format);
             speaker.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1 && running) {
                 speaker.write(buffer, 0, bytesRead);
             }
         } catch (IOException | LineUnavailableException e) {
-            e.printStackTrace();
+            System.err.println("Audio output error: " + e.getMessage());
         } finally {
             cleanup();
         }
@@ -56,7 +64,7 @@ public class Client {
             microphone.open(format);
             microphone.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             while (running) {
                 int count = microphone.read(buffer, 0, buffer.length);
                 if (count > 0) {
@@ -64,7 +72,7 @@ public class Client {
                 }
             }
         } catch (IOException | LineUnavailableException e) {
-            e.printStackTrace();
+            System.err.println("Audio input error: " + e.getMessage());
         } finally {
             cleanup();
         }
@@ -76,12 +84,11 @@ public class Client {
         try {
             if (socket != null) socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error closing socket: " + e.getMessage());
         }
     }
 
     public static void main(String[] args) {
-        new Client("127.0.0.1", 5000);
+        new Client();
     }
 }
-
