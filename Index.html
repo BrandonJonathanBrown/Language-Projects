@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+ <!-- Author Brandon Jonathan Brown -->
+<head>
+<title>Whack A Mole</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+window.onload = function() {
+  const canvas = document.getElementById("canvas");
+  const layout = canvas.getContext("2d");
+  layout.canvas.width = 500;
+  layout.canvas.height = 500;
+
+  const imgSrcs = ["hole.png", "Top.png", "Up.png", "Hit.png", "HitEffect.png", "HitEffectDown.png", "Down.png"];
+  const imgArr = [];
+  let loadedImages = 0;
+
+  imgSrcs.forEach((src, index) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      loadedImages++;
+      if (loadedImages === imgSrcs.length) startGame();
+    };
+    imgArr.push(img);
+  });
+
+  const PosArrY = [200, 300, 400];
+  const PosArrX = [100, 200, 300];
+
+  let x = 0, y = 0, whack = false, total = 0, counter = 0;
+
+  function drawBase() {
+    layout.clearRect(0, 0, canvas.width, canvas.height);
+    PosArrX.forEach(px => PosArrY.forEach(py => layout.drawImage(imgArr[0], px, py, 75, 75)));
+  }
+
+  function drawMole() {
+    const pop = Math.floor(Math.random() * 9);
+    x = PosArrX[pop % 3];
+    y = PosArrY[Math.floor(pop / 3)];
+    counter++;
+    const moleImage = counter % 2 === 0 ? imgArr[1] : imgArr[2];
+    layout.drawImage(moleImage, x, y, 75, 75);
+  }
+
+  canvas.addEventListener('click', function(event) {
+    const rect = canvas.getBoundingClientRect();
+    const posx = event.clientX - rect.left;
+    const posy = event.clientY - rect.top;
+
+    if(posx >= x && posx <= x + 75 && posy >= y && posy <= y + 75) {
+      whack = true;
+      total += 5;
+      layout.drawImage(imgArr[4], x, y, 75, 75);
+    }
+  }, false);
+
+  function performAnimation() {
+    drawBase();
+    if (!whack) drawMole();
+    whack = false;
+
+    layout.font = "20px Times New Roman";
+    layout.fillText("Score: " + total, 10, 40);
+  }
+
+  function startGame() {
+    setInterval(performAnimation, 800); // Adjust the interval to speed up the game
+  }
+}
+</script>
+<style>
+html, body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+#canvas {
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  border: 2px solid black;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50px;
+  background-image: url("background.png");
+}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="500px" height="500px"></canvas>
+</body>
+</html>
