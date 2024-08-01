@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Author Brandon Jonathan Brown -->
+<head>
+    <meta charset="UTF-8">
+    <title>Snake Game</title>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block; /* Removes extra space below canvas */
+        }
+    </style>
+</head>
+<body onload="initGame()">
+<canvas id="canvas"></canvas>
+<img id="apple" src="Apple.png" style="display: none;" />
+<script>
+function initGame() {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const apple = document.getElementById("apple");
+
+    let body = [];
+    let map = [];
+    let direction = 'r';
+    let nextDirection = 'r';
+    let score = 0;
+    const size = 50;
+    const speed = 100; // Speed of the snake
+    const colors = { G: "lightblue", B: "black" };
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        createMap();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createMap() {
+        map = [];
+        for (let i = 0; i < canvas.width / size; i++) {
+            for (let p = 0; p < canvas.height / size; p++) {
+                map.push({ x: i * size, y: p * size, fill: colors.B });
+            }
+        }
+    }
+
+    function drawMap() {
+        map.forEach(oRec => {
+            ctx.fillStyle = oRec.fill;
+            ctx.fillRect(oRec.x, oRec.y, size, size);
+        });
+    }
+
+    function spawnApple() {
+        let newApple;
+        do {
+            newApple = map[Math.floor(Math.random() * map.length)];
+        } while (body.some(segment => segment.x === newApple.x && segment.y === newApple.y));
+        return newApple;
+    }
+
+    let applePos = spawnApple();
+
+    function drawApple() {
+        ctx.drawImage(apple, applePos.x, applePos.y, size, size);
+    }
+
+    function drawScore() {
+        ctx.font = "50px Times New Roman";
+        ctx.fillStyle = "white";
+        ctx.fillText("Score: " + score, 10, 50);
+    }
+
+    document.addEventListener('keydown', function (event) {
+        const key = event.keyCode;
+        const KEY_CODE = { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 };
+        if (key === KEY_CODE.LEFT && direction !== 'r') nextDirection = 'l';
+        if (key === KEY_CODE.RIGHT && direction !== 'l') nextDirection = 'r';
+        if (key === KEY_CODE.DOWN && direction !== 'u') nextDirection = 'd';
+        if (key === KEY_CODE.UP && direction !== 'd') nextDirection = 'u';
+    });
+
+    function initSnake() {
+        body = [
+            { x: 3 * size, y: 1 * size, fill: colors.G },
+            { x: 2 * size, y: 1 * size, fill: colors.G },
+            { x: 1 * size, y: 1 * size, fill: colors.G }
+        ];
+    }
+
+    function drawOval(x, y, width, height) {
+        ctx.beginPath();
+        ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
+    function drawSnake() {
+        body.forEach((segment, index) => {
+            ctx.fillStyle = segment.fill;
+		ctx.fillRect(segment.x, segment.y, size, size);
+        });
+    }
+
+    function updateSnake() {
+        direction = nextDirection;
+
+        // Move the snake body
+        for (let i = body.length - 1; i > 0; i--) {
+            body[i].x = body[i - 1].x;
+            body[i].y = body[i - 1].y;
+        }
+
+        // Change direction
+        if (direction === 'r') body[0].x += size;
+        if (direction === 'l') body[0].x -= size;
+        if (direction === 'u') body[0].y -= size;
+        if (direction === 'd') body[0].y += size;
+
+        // Check wall collision
+        if (body[0].x >= canvas.width || body[0].x < 0 || body[0].y >= canvas.height || body[0].y < 0) {
+            alert("Game Over! Your score: " + score);
+            clearInterval(gameInterval);
+            initGame();
+            return;
+        }
+
+        // Check self collision
+        for (let i = 1; i < body.length; i++) {
+            if (body[0].x === body[i].x && body[0].y === body[i].y) {
+                alert("Game Over! Your score: " + score);
+                clearInterval(gameInterval);
+                initGame();
+                return;
+            }
+        }
+
+        // Check apple collision
+        if (body[0].x === applePos.x && body[0].y === applePos.y) {
+            score += Math.floor(Math.random() * (300 - 100 + 1)) + 100;
+            body.push({ ...body[body.length - 1] }); // Add new segment
+            applePos = spawnApple(); // Respawn apple
+        }
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMap();
+        drawApple();
+        updateSnake();
+        drawSnake();
+        drawScore();
+    }
+
+    createMap();
+    initSnake();
+    const gameInterval = setInterval(gameLoop, speed);
+}
+</script>
+</body>
+</html>
