@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+body, html {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+#canvas {
+  width: 100vw;
+  height: 100vh;
+  background-color: lightblue;
+  display: block; 
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+// Preload images
+const flappyImg = [new Image(), new Image()];
+flappyImg[0].src = "Flappy1.png";
+flappyImg[1].src = "Flappy2.png";
+
+const pipeImg = [new Image(), new Image()];
+pipeImg[0].src = "PipeTop.png";
+pipeImg[1].src = "PipeDown.png";
+
+const backgroundImg = new Image();
+backgroundImg.src = "background.png";
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let y = canvas.height / 2;
+let score = 0;
+let pipeX = canvas.width;
+let pipeHeight = Math.floor(Math.random() * 200) + 50;
+const birdWidth = 50;
+const birdHeight = 50;
+const pipeWidth = 150;
+const pipeGap = 200;
+let frame = 0;
+let passedPipe = false;
+let pipeSpeed = 5; // Initial pipe speed
+
+// Ensure all images are loaded before starting the game
+backgroundImg.onload = function() {
+  requestAnimationFrame(updateGame);
+};
+
+function updateGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the background
+  ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+
+  // Bird animation
+  y += 3; // Gravity
+  const birdImg = flappyImg[frame % 2];
+  ctx.drawImage(birdImg, 200, y, birdWidth, birdHeight);
+
+  // Pipe movement and drawing
+  pipeX -= pipeSpeed;
+  if (pipeX < -pipeWidth) { // Reset pipe when it goes off screen
+    pipeX = canvas.width;
+    pipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 30;
+    passedPipe = false; // Reset passedPipe flag when a new pipe is generated
+  }
+  ctx.drawImage(pipeImg[0], pipeX, -20, pipeWidth, pipeHeight); // Top pipe
+  ctx.drawImage(pipeImg[1], pipeX, pipeHeight + pipeGap, pipeWidth, canvas.height - pipeHeight - pipeGap); // Bottom pipe
+
+  // Collision detection
+  if (checkCollision(200, y, birdWidth, birdHeight, pipeX, 0, pipeWidth, pipeHeight) || 
+      checkCollision(200, y, birdWidth, birdHeight, pipeX, pipeHeight + pipeGap, pipeWidth, canvas.height - pipeHeight - pipeGap)) {
+    gameOver();
+    return; // Stop updating the game after game over
+  }
+
+  // Check for ground hit
+  if (y + birdHeight >= canvas.height) {
+    gameOver();
+    return; // Stop updating the game after game over
+  }
+
+  score++;
+
+  // Update score
+  if (pipeX + pipeWidth < 200 && !passedPipe) {
+    score += Math.floor(Math.random() * (300 - 100 + 1)) + 100; // Increment score
+    passedPipe = true; // Set flag to true
+  }
+
+  // Increase pipe speed every 1500 points
+  if (score % 1500 === 0 && score !== 0) {
+    pipeSpeed += 1; // Increase pipe speed
+  }
+
+  // Draw score
+  ctx.font = '48px Arial'; // Font size and family
+  ctx.fillStyle = 'white';  // Text color
+  ctx.textAlign = 'center'; // Horizontal alignment
+  ctx.textBaseline = 'top'; // Vertical alignment
+  ctx.strokeStyle = 'black'; // Outline color
+  ctx.lineWidth = 2; // Outline thickness
+  ctx.strokeText('Score: ' + score, canvas.width / 2, 20); // Draw score outline
+  ctx.fillText('Score: ' + score, canvas.width / 2, 20); // Draw score
+
+  // Update frame for next call
+  frame++;
+  requestAnimationFrame(updateGame);
+}
+
+document.addEventListener('keyup', event => {
+  if (event.code === 'Space') {
+    y -= 60; // Jump
+  }
+});
+
+function checkCollision(bx, by, bw, bh, px, py, pw, ph) {
+  return bx < px + pw &&
+         bx + bw > px &&
+         by < py + ph &&
+         by + bh > py;
+}
+
+function gameOver() {
+  alert("Game Over! Your score was: " + score);
+  y = canvas.height / 2; // Reset bird position
+  pipeX = canvas.width; // Reset pipe position
+  score = 0; // Reset score
+  frame = 0; // Reset frame count for animation
+  passedPipe = false; // Reset passedPipe flag
+  pipeSpeed = 5; // Reset pipe speed
+}
+</script>
+</body>
+</html>
