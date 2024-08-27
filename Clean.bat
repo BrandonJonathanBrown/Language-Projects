@@ -50,8 +50,43 @@ echo DISM Repair Completed.
 :: Check Disk for Errors
 echo Checking disk for errors...
 chkdsk C: /f /r /x
-echo Disk Check Completed. (Note: You might need to restart your computer for this to complete.)
+echo Disk Check Completed. (Note: You might need to restart your computer for this to complete.
+echo Cleaning temporary files...
 
+:: Set the path for temporary files
+set temp_path=%TEMP%
+set local_temp_path=%LOCALAPPDATA%\Temp
+
+:: List of directories to clean
+set directories_to_clean=(
+    "%TEMP%"
+    "%LOCALAPPDATA%\Temp"
+    "%WINDIR%\Temp"
+    "%SystemRoot%\Prefetch"
+    "%SystemDrive%\Windows\SoftwareDistribution\Download"
+)
+
+:: List of specific file patterns to delete
+set file_patterns_to_delete=(
+    "*.tmp"
+    "*.log"
+    "*.bak"
+    "*.old"
+)
+
+:: Function to delete files matching patterns in a directory
+:delete_files
+echo Deleting files in %1...
+for %%F in (%file_patterns_to_delete%) do (
+    del /q /f "%1\%%F"
+)
+
+:: Run the cleaning functions
+for %%D in (%directories_to_clean%) do (
+    if exist %%D (
+        call :delete_files %%D
+    )
+)
 :: Final Message
 echo Cleanup and repair tasks are completed.
 pause
